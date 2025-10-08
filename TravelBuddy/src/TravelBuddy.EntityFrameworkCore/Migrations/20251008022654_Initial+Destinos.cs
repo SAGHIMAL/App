@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TravelBuddy.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialDestinos : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -420,6 +420,28 @@ namespace TravelBuddy.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AbpUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AppDestinos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Pais = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Ciudad = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Coordenadas = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Foto = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
+                    Poblacion = table.Column<int>(type: "int", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AppDestinos", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -1134,6 +1156,9 @@ namespace TravelBuddy.Migrations
 
             migrationBuilder.DropTable(
                 name: "AbpUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "AppDestinos");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictScopes");

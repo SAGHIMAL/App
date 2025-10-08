@@ -26,11 +26,8 @@ namespace TravelBuddy.Migrations
 
             modelBuilder.Entity("TravelBuddy.Destinos.Destino", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Ciudad")
                         .IsRequired()
@@ -80,9 +77,12 @@ namespace TravelBuddy.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("Poblacion")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Destinos", (string)null);
+                    b.ToTable("AppDestinos", (string)null);
                 });
 
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLog", b =>

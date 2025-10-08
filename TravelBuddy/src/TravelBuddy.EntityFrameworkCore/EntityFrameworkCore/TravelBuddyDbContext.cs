@@ -102,6 +102,10 @@ public class TravelBuddyDbContext :
             b.Property(x => x.Foto)
                 .IsRequired() // Agregado para que no sea nulo
                 .HasMaxLength(512);
+
+            b.Property(x => x.Poblacion)
+                .IsRequired(); // Agregado para que no sea nulo 
+
         });
     }
 }

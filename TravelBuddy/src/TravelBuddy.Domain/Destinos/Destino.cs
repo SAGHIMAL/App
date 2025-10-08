@@ -22,14 +22,14 @@ public class Destino : AuditedAggregateRoot<Guid>
     {
     }
 
-    public Destino(Guid id, string pais, string ciudad, string coordenadas, string foto, int Poblacion )
+    public Destino(Guid id, string pais, string ciudad, string coordenadas, string foto, int poblacion )
         : base(id)
     {
         Pais = pais;
         Ciudad = ciudad;
         Coordenadas = coordenadas;
         Foto = foto;
-        Poblacion = 0;
+        Poblacion = poblacion;
     }
 }
 
