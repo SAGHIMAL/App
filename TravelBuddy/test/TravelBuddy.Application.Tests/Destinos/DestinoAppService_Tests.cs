@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Volo.Abp.Application.Dtos;
-using Xunit;
+using Autofac.Core;
 using Shouldly;
+using TravelBuddy.Destinos;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Modularity;
 using Volo.Abp.Validation;
-using TravelBuddy.Destinos;
+using Xunit;
 
 namespace TravelBuddy.Destinos;
 
@@ -26,7 +27,7 @@ where TStartupModule : IAbpModule
 
         //Este apartado es para crear un destino en vez de usar la seed
         //Deberiamos de dar de alta un destino desde el swagger pero da error
-       /* await _destinoAppService.CreateAsync(new CreateUpdatedestinoDTO
+       await _destinoAppService.CreateAsync(new CreateUpdatedestinoDTO
         {
             Ciudad = "Paris",
             Coordenadas = "48.8566° N, 2.3522° E",
@@ -34,7 +35,7 @@ where TStartupModule : IAbpModule
             Foto = "https://example.com/paris.jpg",
             Poblacion = 2148000
         });
-       */
+       
 
 
         // Act
@@ -85,6 +86,31 @@ where TStartupModule : IAbpModule
         });
         exception.ValidationErrors
             .ShouldContain(err => err.MemberNames.Any(mem => mem == "Pais"));
+    }
+    [Fact]
+
+    public async Task CreateAsync_ShouldPersistDestinationInDatabase()
+    {
+        // Arrange
+        var input = new CreateUpdatedestinoDTO
+        {
+            Ciudad = "Paris",
+            Pais = "Francia",
+            Coordenadas = "48.8566° N, 2.3522° E",  
+            Foto = "https://example.com/paris.jpg",     
+            Poblacion = 2148000
+            
+        };
+
+        // Act
+        var createdDestination = await _destinoAppService.CreateAsync(input);
+        var retrievedDestination = await _destinoAppService.GetAsync(createdDestination.Id);    
+
+        // Assert
+        retrievedDestination.ShouldNotBeNull();
+        retrievedDestination.Id.ShouldBe(createdDestination.Id);
+        retrievedDestination.Ciudad.ShouldBe(input.Ciudad);
+        retrievedDestination.Pais.ShouldBe(input.Pais);
     }
 }   
 
