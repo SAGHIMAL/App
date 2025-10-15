@@ -1,4 +1,7 @@
 using AutoMapper;
+using TravelBuddy.Destinos;
+
+using Volo.Abp.Domain.Entities.Events.Distributed;
 
 namespace TravelBuddy;
 
@@ -6,8 +9,8 @@ public class TravelBuddyApplicationAutoMapperProfile : Profile
 {
     public TravelBuddyApplicationAutoMapperProfile()
     {
-        /* You can configure your AutoMapper mapping configuration here.
-         * Alternatively, you can split your mapping configurations
-         * into multiple profile classes for a better organization. */
+
+        CreateMap < Destino, destinoDTO >();  
+        CreateMap < CreateUpdatedestinoDTO, Destino >();    
     }
 }

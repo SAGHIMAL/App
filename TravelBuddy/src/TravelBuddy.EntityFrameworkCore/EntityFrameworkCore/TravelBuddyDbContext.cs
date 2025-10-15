@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TravelBuddy.Destinos;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
@@ -9,10 +10,10 @@ using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
-using Volo.Abp.OpenIddict.EntityFrameworkCore;
-
+        
 namespace TravelBuddy.EntityFrameworkCore;
 
 [ReplaceDbContext(typeof(IIdentityDbContext))]
@@ -21,7 +22,7 @@ public class TravelBuddyDbContext :
     AbpDbContext<TravelBuddyDbContext>,
     IIdentityDbContext
 {
-    /* Add DbSet properties for your Aggregate Roots / Entities here. */
+    public DbSet<Destino> Destinos { get; set; }
 
 
     #region Entities from the modules
@@ -69,7 +70,7 @@ public class TravelBuddyDbContext :
         builder.ConfigureIdentity();
         builder.ConfigureOpenIddict();
         builder.ConfigureBlobStoring();
-        
+
         /* Configure your own tables/entities inside here */
 
         //builder.Entity<YourEntity>(b =>
@@ -78,5 +79,33 @@ public class TravelBuddyDbContext :
         //    b.ConfigureByConvention(); //auto configure for the base class props
         //    //...
         //});
+
+        /* Configure your own tables/entities inside here */
+        builder.Entity<Destino>(b =>
+        {
+            b.ToTable(TravelBuddyConsts.DbTablePrefix + "Destinos", TravelBuddyConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Ahora todas las propiedades son obligatorias en la base de datos
+            b.Property(x => x.Pais)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            b.Property(x => x.Ciudad)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            b.Property(x => x.Coordenadas)
+                .IsRequired() // Agregado para que no sea nulo
+                .HasMaxLength(256);
+
+            b.Property(x => x.Foto)
+                .IsRequired() // Agregado para que no sea nulo
+                .HasMaxLength(512);
+
+            b.Property(x => x.Poblacion)
+                .IsRequired(); // Agregado para que no sea nulo 
+
+        });
     }
 }

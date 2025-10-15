@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TravelBuddy.Application\TravelBuddy.Application.csproj" />
+    <ProjectReference Include="..\TravelBuddy.Domain\TravelBuddy.Domain.csproj" />
     <ProjectReference Include="..\TravelBuddy.HttpApi\TravelBuddy.HttpApi.csproj" />
     <ProjectReference Include="..\TravelBuddy.EntityFrameworkCore\TravelBuddy.EntityFrameworkCore.csproj" />
   </ItemGroup>
