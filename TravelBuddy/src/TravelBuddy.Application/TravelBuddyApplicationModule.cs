@@ -5,6 +5,7 @@ using Volo.Abp.Identity;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Modularity;
+using Volo.Abp.Http.Client;
 
 namespace TravelBuddy;
 
@@ -15,7 +16,8 @@ namespace TravelBuddy;
     typeof(AbpFeatureManagementApplicationModule),
     typeof(AbpIdentityApplicationModule),
     typeof(AbpAccountApplicationModule),
-    typeof(AbpSettingManagementApplicationModule)
+    typeof(AbpSettingManagementApplicationModule),
+    typeof(AbpHttpClientModule)
     )]
 public class TravelBuddyApplicationModule : AbpModule
 {
