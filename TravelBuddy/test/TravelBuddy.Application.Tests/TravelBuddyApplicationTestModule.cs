@@ -8,5 +8,4 @@ namespace TravelBuddy;
 )]
 public class TravelBuddyApplicationTestModule : AbpModule
 {
-
 }
