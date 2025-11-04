@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TravelBuddy.Calificaciones;
 using TravelBuddy.Destinos;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -23,6 +24,8 @@ public class TravelBuddyDbContext :
     IIdentityDbContext
 {
     public DbSet<Destino> Destinos { get; set; }
+
+    public DbSet<Calificacion> Calificaciones { get; set; }
 
 
     #region Entities from the modules
@@ -105,6 +108,22 @@ public class TravelBuddyDbContext :
 
             b.Property(x => x.Poblacion)
                 .IsRequired(); // Agregado para que no sea nulo 
+
+        });
+
+        builder.Entity<Calificacion>(b =>
+        {
+            b.ToTable(TravelBuddyConsts.DbTablePrefix + "Calificaciones", TravelBuddyConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Ahora todas las propiedades son obligatorias en la base de datos
+            b.Property(x => x.Puntaje)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            b.Property(x => x.Comentario)
+                .IsRequired() // Agregado para que no sea nulo
+                .HasMaxLength(256);
 
         });
     }
