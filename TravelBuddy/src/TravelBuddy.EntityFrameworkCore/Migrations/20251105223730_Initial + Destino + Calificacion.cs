@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TravelBuddy.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDestinosCalificaciones : Migration
+    public partial class InitialDestinoCalificacion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -429,7 +429,7 @@ namespace TravelBuddy.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DestinoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Puntaje = table.Column<int>(type: "int", maxLength: 100, nullable: false),
-                    Comentario = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Comentario = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ExtraProperties = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false),

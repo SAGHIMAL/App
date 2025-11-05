@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TravelBuddy.Destinos;
+using Volo.Abp;
 using Volo.Abp.Authorization;
 using Volo.Abp.Domain.Entities; 
 using Volo.Abp.Domain.Repositories;
@@ -28,7 +29,7 @@ namespace TravelBuddy.Calificaciones
         private readonly ICurrentUser _currentUser;
         private readonly ICurrentPrincipalAccessor _currentPrincipalAccessor;
         private readonly IdentityUserManager _identityUserManager;
-        // El constructor obtiene los servicios que necesitamos
+      
         public CalificacionAppService_Tests()
         {
             _calificacionAppService = GetRequiredService<ICalificacionAppService>();
@@ -39,16 +40,11 @@ namespace TravelBuddy.Calificaciones
             _identityUserManager = GetRequiredService<IdentityUserManager>();
         }
 
-        /*
-         * PRUEBA DE SEGURIDAD (Punto 6.3 del TP)
-         * "Asegurar que el endpoint falla con 401 si no se provee token."
-         * [cite: 518]
-         * En una prueba de integración, esto se traduce a una AbpAuthorizationException.
-         */
+        
         [Fact]
         public async Task NotCrearCalificacionWhenNotLogin()
         {
-            // Arrange
+            
             var destinoId = Guid.NewGuid();
 
             await WithUnitOfWorkAsync(async () =>
@@ -65,51 +61,41 @@ namespace TravelBuddy.Calificaciones
 
             using (_currentPrincipalAccessor.Change(new ClaimsPrincipal(new ClaimsIdentity())))
             {
-                // --- ACT & ASSERT ---
-                // Ahora que SÍ estamos deslogueados, la excepción de autorización SÍ se lanzará
+                
                 await Should.ThrowAsync<AbpAuthorizationException>(async () =>
                 {
                     await _calificacionAppService.CrearAsync(input);
                 });
-                // Act & Assert
-                // Verificamos que al llamar al método (sin estar logueado),
-                // se lanza la excepción de autorización que pusimos.
+                
                 await Should.ThrowAsync<AbpAuthorizationException>(async () =>
             {
                 await _calificacionAppService.CrearAsync(input);
             });
             }
         }
-        /*
-         * PRUEBA DE INTEGRACIÓN (Punto 6.2 del TP)
-         * "Confirmar que el AppService [...] requiere autenticación."
-         * [cite: 517]
-         * "Validar la lógica de calificación..."
-         * 
-         */
+       
 
         [Fact]
         public async Task ShouldCreateCalificacionWhenLoggedIn()
         {
-            // Arrange
-            // 1. Creamos un destino de prueba en la BD en memoria
+            
             var destinoId = Guid.NewGuid();
-            await WithUnitOfWorkAsync(async () => // <-- ¡AGREGA ESTO!
+            await WithUnitOfWorkAsync(async () => 
             {
                 await _destinoRepository.InsertAsync(new Destino(destinoId, "Francia", "Paris", "48.8566° N, 2.3522° E", "https://example.com/paris.jpg", 2148000));
             });
 
 
-            // 2. Simulamos un inicio de sesión
+         
             var userId = Guid.NewGuid();
             var username = "testuser";
 
             await WithUnitOfWorkAsync(async () =>
             {
                 var user = new IdentityUser(userId, username, "testuser@example.com");
-                // Le damos una contraseña y guardamos el usuario
+            
                 var identityResult = await _identityUserManager.CreateAsync(user, "TestPassword123!");
-                identityResult.Succeeded.ShouldBeTrue(); // ¡Verifica que el resultado fue exitoso!
+                identityResult.Succeeded.ShouldBeTrue(); 
             });
             var claimsprincipal = new ClaimsPrincipal(
                     new ClaimsIdentity(
@@ -127,8 +113,7 @@ namespace TravelBuddy.Calificaciones
                         Comentario = "Prueba de integración"
                     };
                     await _calificacionAppService.CrearAsync(input);
-                    // Act
-                    // Llamamos al método AHORA QUE ESTAMOS LOGUEADOS
+                    
 
                     await WithUnitOfWorkAsync(async () =>
                     {
@@ -141,6 +126,131 @@ namespace TravelBuddy.Calificaciones
                     });
                 }
             }
+        [Fact]
+        public void Should_Throw_Exception_When_Puntaje_Is_Out_Of_Range()
+        {
+            var guid = Guid.NewGuid();
+
+           
+            Should.Throw<ArgumentOutOfRangeException>(() =>
+            {
+                new Calificacion(guid, guid, guid, 0, "Inválido");
+            });
+
+           
+            Should.Throw<ArgumentOutOfRangeException>(() =>
+            {
+                new Calificacion(guid, guid, guid, 6, "Inválido");
+            });
         }
+        [Fact]
+        public void Should_Create_Successfully_With_Valid_Puntaje()
+        {
+            var guid = Guid.NewGuid();
+
+            
+            var calificacionMin = new Calificacion(guid, guid, guid, 1, "Válido");
+            calificacionMin.Puntaje.ShouldBe(1);
+
+          
+            var calificacionMax = new Calificacion(guid, guid, guid, 5, "Válido");
+            calificacionMax.Puntaje.ShouldBe(5);
+        }
+        [Fact]
+        public async Task Should_Create_Rating_Without_Comentario()
+        {
+           
+            var userId = Guid.NewGuid();
+            var username = "testuser-nocomment";
+            await WithUnitOfWorkAsync(async () =>
+            {
+                (await _identityUserManager.CreateAsync(new IdentityUser(userId, username, "test@example.com"), "TestPassword123!")).Succeeded.ShouldBeTrue();
+            });
+
+            var destinoId = Guid.NewGuid();
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _destinoRepository.InsertAsync(new Destino(destinoId, "Francia", "Paris", "48.8566° N, 2.3522° E", "https://example.com/paris.jpg", 2148000));
+            });
+
+            var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(
+                        new Claim[]
+                        {
+                        new Claim(AbpClaimTypes.UserName, username),
+                        new Claim(AbpClaimTypes.UserId,userId.ToString()),
+                        }));
+
+            using (_currentPrincipalAccessor.Change(claimsPrincipal))
+            {
+                var input = new crearCalificacionDTO
+                {
+                    DestinoId = destinoId,
+                    Puntaje = 4,
+                    Comentario = null 
+                };
+
+                
+                await _calificacionAppService.CrearAsync(input);
+
+               
+                await WithUnitOfWorkAsync(async () =>
+                {
+                    var calificacion = await _calificacionRepository.FirstOrDefaultAsync(c => c.DestinoId == destinoId);
+
+                    calificacion.ShouldNotBeNull();
+                    calificacion.Puntaje.ShouldBe(4);
+                    calificacion.Comentario.ShouldBeNull(); 
+                    calificacion.UserId.ShouldBe(userId);
+                });
+            }
+        }
+        [Fact]
+        public async Task Should_Throw_Exception_When_Rating_Same_Destino_Twice()
+        {
+           
+            var userId = Guid.NewGuid();
+            var username = "testuser-duplicate";
+            await WithUnitOfWorkAsync(async () => { new IdentityUser(userId, username, "testuser@example.com"); });
+            var destinoId = Guid.NewGuid();
+            await WithUnitOfWorkAsync(async () => { new Destino(destinoId, "Francia", "Paris", "48.8566° N, 2.3522° E", "https://example.com/paris.jpg", 2148000); });
+
+            var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(
+                        new Claim[]
+                        {
+                        new Claim(AbpClaimTypes.UserName, username),
+                        new Claim(AbpClaimTypes.UserId,userId.ToString()),
+                        }));
+
+            using (_currentPrincipalAccessor.Change(claimsPrincipal))
+            {
+                var input = new crearCalificacionDTO
+                {
+                    DestinoId = destinoId,
+                    Puntaje = 5,
+                    Comentario = "Primera vez"
+                };
+
+                
+                await _calificacionAppService.CrearAsync(input);
+
+              
+                var inputDuplicado = new crearCalificacionDTO
+                {
+                    DestinoId = destinoId,
+                    Puntaje = 1,
+                    Comentario = "Segunda vez"
+                };
+
+               
+                var exception = await Should.ThrowAsync<UserFriendlyException>(async () =>
+                {
+                    await _calificacionAppService.CrearAsync(inputDuplicado);
+                });
+
+                
+                exception.Message.ShouldBe("Ya has calificado este destino.");
+            }
+        }
+    }
     }
 

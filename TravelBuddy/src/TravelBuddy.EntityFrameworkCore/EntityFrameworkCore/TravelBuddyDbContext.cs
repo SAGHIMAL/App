@@ -63,7 +63,7 @@ public class TravelBuddyDbContext :
     {
         base.OnModelCreating(builder);
 
-        /* Include modules to your migration db context */
+        
 
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
@@ -89,7 +89,7 @@ public class TravelBuddyDbContext :
             b.ToTable(TravelBuddyConsts.DbTablePrefix + "Destinos", TravelBuddyConsts.DbSchema);
             b.ConfigureByConvention();
 
-            // Ahora todas las propiedades son obligatorias en la base de datos
+            
             b.Property(x => x.Pais)
                 .IsRequired()
                 .HasMaxLength(100);
@@ -99,15 +99,15 @@ public class TravelBuddyDbContext :
                 .HasMaxLength(100);
 
             b.Property(x => x.Coordenadas)
-                .IsRequired() // Agregado para que no sea nulo
+                .IsRequired() 
                 .HasMaxLength(256);
 
             b.Property(x => x.Foto)
-                .IsRequired() // Agregado para que no sea nulo
+                .IsRequired() 
                 .HasMaxLength(512);
 
             b.Property(x => x.Poblacion)
-                .IsRequired(); // Agregado para que no sea nulo 
+                .IsRequired(); 
 
         });
 
@@ -116,13 +116,12 @@ public class TravelBuddyDbContext :
             b.ToTable(TravelBuddyConsts.DbTablePrefix + "Calificaciones", TravelBuddyConsts.DbSchema);
             b.ConfigureByConvention();
 
-            // Ahora todas las propiedades son obligatorias en la base de datos
+            
             b.Property(x => x.Puntaje)
                 .IsRequired()
                 .HasMaxLength(100);
 
             b.Property(x => x.Comentario)
-                .IsRequired() // Agregado para que no sea nulo
                 .HasMaxLength(256);
 
         });

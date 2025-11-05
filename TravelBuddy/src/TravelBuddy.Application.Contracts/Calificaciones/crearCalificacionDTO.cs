@@ -15,6 +15,6 @@ namespace TravelBuddy.Calificaciones
         public int Puntaje { get; set; }
 
     
-        public string Comentario { get; set; }
+        public string? Comentario { get; set; }
     }
 }

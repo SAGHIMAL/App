@@ -10,18 +10,18 @@ namespace TravelBuddy.Calificaciones
     public class Calificacion : AuditedAggregateRoot<Guid>, IUserOwned
 
     {
-        // 1. Propiedades de la entidad
+   
         public Guid DestinoId { get; private set; }
         public int Puntaje { get; private set; }
 
-        public string Comentario { get; private set; }
-        // 2. Propiedad de la interfaz IUserOwned
+        public string? Comentario { get; private set; }
+   
         public Guid UserId { get; set; }
 
-        // 3. Constructor
+  
         private Calificacion()
         {
-            /* Este constructor es requerido por Entity Framework Core. */
+           
         }
 
         public Calificacion(
@@ -29,11 +29,15 @@ namespace TravelBuddy.Calificaciones
             Guid destinoId,
             Guid userId,
             int puntaje,
-            string comentario) : base(id)
+            string? comentario) : base(id)
         {
+            if (puntaje < 1 || puntaje > 5)
+            {
+                throw new ArgumentOutOfRangeException(nameof(puntaje), "El puntaje debe estar entre 1 y 5.");
+            }
             DestinoId = destinoId;
             UserId = userId;
-            Puntaje = puntaje; // Aquí podrías agregar validaciones (ej. que esté entre 1 y 5)
+            Puntaje = puntaje; 
             Comentario = comentario;
         }
     }

@@ -13,8 +13,8 @@ using Volo.Abp.EntityFrameworkCore;
 namespace TravelBuddy.Migrations
 {
     [DbContext(typeof(TravelBuddyDbContext))]
-    [Migration("20251031194108_Initial + Destinos + Calificaciones")]
-    partial class InitialDestinosCalificaciones
+    [Migration("20251105223730_Initial + Destino + Calificacion")]
+    partial class InitialDestinoCalificacion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,7 +33,6 @@ namespace TravelBuddy.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Comentario")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 

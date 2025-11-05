@@ -30,7 +30,6 @@ namespace TravelBuddy.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Comentario")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 

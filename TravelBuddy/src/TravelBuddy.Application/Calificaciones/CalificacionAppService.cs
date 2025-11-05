@@ -5,6 +5,7 @@ using Volo.Abp.Authorization;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 using Volo.Abp.AspNetCore;
+using Volo.Abp;
 
 
 
@@ -31,14 +32,23 @@ namespace TravelBuddy.Calificaciones
      
         public async Task CrearAsync(crearCalificacionDTO input)
         {
-            // Verificamos que el ID del usuario no sea nulo (es decir, que esté logueado)
+            
             if (!_currentUser.Id.HasValue)
             {
                 
                 throw new AbpAuthorizationException("No estás autorizado");
             }
 
-           
+            var existingRating = await _calificacionRepository.FirstOrDefaultAsync(
+         c => c.UserId == _currentUser.Id && c.DestinoId == input.DestinoId
+     );
+
+            
+            if (existingRating != null)
+            {
+                throw new UserFriendlyException("Ya has calificado este destino.");
+            }
+
             var calificacion = new Calificacion(
                 GuidGenerator.Create(), 
                 input.DestinoId,        
