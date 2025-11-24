@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TravelBuddy.Calificaciones;
 using TravelBuddy.Destinos;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -23,6 +24,8 @@ public class TravelBuddyDbContext :
     IIdentityDbContext
 {
     public DbSet<Destino> Destinos { get; set; }
+
+    public DbSet<Calificacion> Calificaciones { get; set; }
 
 
     #region Entities from the modules
@@ -60,7 +63,7 @@ public class TravelBuddyDbContext :
     {
         base.OnModelCreating(builder);
 
-        /* Include modules to your migration db context */
+        
 
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
@@ -86,7 +89,7 @@ public class TravelBuddyDbContext :
             b.ToTable(TravelBuddyConsts.DbTablePrefix + "Destinos", TravelBuddyConsts.DbSchema);
             b.ConfigureByConvention();
 
-            // Ahora todas las propiedades son obligatorias en la base de datos
+            
             b.Property(x => x.Pais)
                 .IsRequired()
                 .HasMaxLength(100);
@@ -96,15 +99,30 @@ public class TravelBuddyDbContext :
                 .HasMaxLength(100);
 
             b.Property(x => x.Coordenadas)
-                .IsRequired() // Agregado para que no sea nulo
+                .IsRequired() 
                 .HasMaxLength(256);
 
             b.Property(x => x.Foto)
-                .IsRequired() // Agregado para que no sea nulo
+                .IsRequired() 
                 .HasMaxLength(512);
 
             b.Property(x => x.Poblacion)
-                .IsRequired(); // Agregado para que no sea nulo 
+                .IsRequired(); 
+
+        });
+
+        builder.Entity<Calificacion>(b =>
+        {
+            b.ToTable(TravelBuddyConsts.DbTablePrefix + "Calificaciones", TravelBuddyConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            
+            b.Property(x => x.Puntaje)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            b.Property(x => x.Comentario)
+                .HasMaxLength(256);
 
         });
     }

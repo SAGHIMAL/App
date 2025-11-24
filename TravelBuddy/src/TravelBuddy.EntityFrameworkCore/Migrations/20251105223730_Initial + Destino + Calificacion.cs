@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TravelBuddy.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDestinos : Migration
+    public partial class InitialDestinoCalificacion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -420,6 +420,27 @@ namespace TravelBuddy.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AbpUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AppCalificaciones",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DestinoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Puntaje = table.Column<int>(type: "int", maxLength: 100, nullable: false),
+                    Comentario = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AppCalificaciones", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -1156,6 +1177,9 @@ namespace TravelBuddy.Migrations
 
             migrationBuilder.DropTable(
                 name: "AbpUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "AppCalificaciones");
 
             migrationBuilder.DropTable(
                 name: "AppDestinos");
