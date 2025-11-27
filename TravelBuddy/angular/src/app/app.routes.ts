@@ -1,5 +1,7 @@
 import { authGuard, permissionGuard } from '@abp/ng.core';
 import { Routes } from '@angular/router';
+import { CiudadesComponent } from './ciudades/ciudades';
+import { Component } from '@angular/core';
 
 export const APP_ROUTES: Routes = [
   {
@@ -19,4 +21,5 @@ export const APP_ROUTES: Routes = [
     path: 'setting-management',
     loadChildren: () => import('@abp/ng.setting-management').then(c => c.createRoutes()),
   },
+  { path: 'ciudades', component: CiudadesComponent },
 ];
