@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Volo.Abp.Domain.Repositories;
 using Xunit;
 
 namespace TravelBuddy.Ciudades
@@ -13,12 +14,15 @@ namespace TravelBuddy.Ciudades
     {
         private readonly ICitySearchService _citySearchServiceMock;
         private readonly CityAppService _cityAppService;
+        private readonly IRepository<Ciudad, Guid> _ciudadRepositoryMock;
 
         public CityAppService_Tests()
         {
             _citySearchServiceMock = Substitute.For<ICitySearchService>();
 
-            _cityAppService = new CityAppService(_citySearchServiceMock);
+            _ciudadRepositoryMock = Substitute.For<IRepository<Ciudad, Guid>>();
+
+            _cityAppService = new CityAppService(_citySearchServiceMock, _ciudadRepositoryMock);
         }
 
 
@@ -37,7 +41,7 @@ namespace TravelBuddy.Ciudades
             };
 
             _citySearchServiceMock
-                .SearchByNameAsync(nombreParcial)
+                .SearchCitiesAsync(inputDto)
                 .Returns(Task.FromResult(fakeApiResult));
 
             var result = await _cityAppService.SearchCitiesAsync(inputDto);
@@ -57,7 +61,7 @@ namespace TravelBuddy.Ciudades
             var inputDto = new SearchCityInputDTO { nombreParcial = nombreParcial };
 
             _citySearchServiceMock
-                .SearchByNameAsync(nombreParcial)
+                .SearchCitiesAsync(inputDto)
                 .Returns(Task.FromResult(new List<CiudadesExternasDTO>()));
 
             var result = await _cityAppService.SearchCitiesAsync(inputDto);

@@ -8,6 +8,7 @@ namespace TravelBuddy.Ciudades
 {
     public interface ICitySearchService
     {
-        Task<List<CiudadesExternasDTO>> SearchByNameAsync(string nombreParcial);
+        Task<List<CiudadesExternasDTO>> SearchCitiesAsync(SearchCityInputDTO input);
+        Task<CiudadesExternasDTO> GetCityByIdAsync(int geoDbId);
     }
 }

@@ -14,7 +14,8 @@ using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
-        
+using TravelBuddy.Ciudades;
+
 namespace TravelBuddy.EntityFrameworkCore;
 
 [ReplaceDbContext(typeof(IIdentityDbContext))]
@@ -26,6 +27,7 @@ public class TravelBuddyDbContext :
     public DbSet<Destino> Destinos { get; set; }
 
     public DbSet<Calificacion> Calificaciones { get; set; }
+    public DbSet<Ciudad> Ciudades { get; set; }
 
 
     #region Entities from the modules
@@ -124,6 +126,25 @@ public class TravelBuddyDbContext :
             b.Property(x => x.Comentario)
                 .HasMaxLength(256);
 
+        });
+
+
+        builder.Entity<Ciudad>(b =>
+        {
+            b.ToTable(TravelBuddyConsts.DbTablePrefix + "Ciudades", TravelBuddyConsts.DbSchema);
+            b.ConfigureByConvention();
+            //b.HasIndex(x => x.Nombre);
+
+            b.Property(x => x.Nombre)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            b.Property(x => x.Pais)
+                .IsRequired() 
+                .HasMaxLength(100);
+            
+            b.Property(x => x.Poblacion)
+                .IsRequired(); 
         });
     }
 }

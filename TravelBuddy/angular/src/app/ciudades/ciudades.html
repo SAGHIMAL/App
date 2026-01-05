@@ -9,25 +9,54 @@
 
     <div class="card-body">
       
-      <form class="row row-cols-lg-auto g-3 align-items-center mb-4" (ngSubmit)="onSearchChange(textoBusqueda)">
+      <form class="row g-3 align-items-center mb-4" (ngSubmit)="onSearchChange()">
         
-        <div class="col-12">
+        <div class="col-md-5">
+          <label class="visually-hidden" for="nombreInput">Nombre</label>
           <div class="input-group">
             <input 
+              id="nombreInput"
               type="text" 
               class="form-control" 
-              placeholder="Ingrese nombre (ej. Rio)..." 
+              placeholder="Nombre (ej. Rio)..." 
               [(ngModel)]="textoBusqueda" 
-              (ngModelChange)="onSearchChange($event)"
+              (ngModelChange)="onSearchChange()"
               name="textoBusqueda" 
             />
           </div>
         </div>
 
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary" [disabled]="cargando">
+        <div class="col-md-2">
+          <label class="visually-hidden" for="paisInput">País</label>
+          <input 
+            id="paisInput"
+            type="text" 
+            class="form-control" 
+            placeholder="País (ej. AR)" 
+            [(ngModel)]="filtroPais" 
+            (ngModelChange)="onSearchChange()"
+            name="filtroPais" 
+            title="Código de país ISO (ej: AR, US, ES)"
+          />
+        </div>
+
+        <div class="col-md-3">
+          <label class="visually-hidden" for="poblacionInput">Población</label>
+          <input 
+            id="poblacionInput"
+            type="number" 
+            class="form-control" 
+            placeholder="Población Mín." 
+            [(ngModel)]="filtroPoblacion" 
+            (ngModelChange)="onSearchChange()"
+            name="filtroPoblacion" 
+          />
+        </div>
+
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100" [disabled]="cargando">
             <i class="fa fa-search me-1"></i>
-            {{ cargando ? 'Buscando...' : 'Buscar' }}
+            {{ cargando ? '...' : 'Buscar' }}
           </button>
         </div>
 
@@ -35,23 +64,34 @@
 
       <div *ngIf="ciudades.length > 0">
         <table class="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>País</th>
-              <th>Región</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let ciudad of ciudades">
-              <td>{{ ciudad.id }}</td>
-              <td>{{ ciudad.nombre }}</td>
-              <td>{{ ciudad.pais }}</td>
-              <td>{{ ciudad.region }}</td>
-            </tr>
-          </tbody>
-        </table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>País</th>
+      <th>Región</th>
+      <th style="width: 120px; text-align: center">Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let ciudad of ciudades">
+      <td>{{ ciudad.id }}</td>
+      <td>{{ ciudad.city }}</td>
+      <td>{{ ciudad.country }}</td>
+      <td>{{ ciudad.region }}</td>
+      
+      <td class="text-center">
+        <button 
+          class="btn btn-sm btn-info text-white" 
+          [routerLink]="['/ciudades/detalle', ciudad.id]"
+          title="Ver detalles completos">
+          <i class="fa fa-eye"></i> Ver
+        </button>
+      </td>
+
+    </tr>
+  </tbody>
+</table>
       </div>
 
       <div *ngIf="ciudades.length === 0 && !cargando && textoBusqueda.length > 0" class="alert alert-light mt-3">

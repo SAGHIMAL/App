@@ -12,5 +12,8 @@ namespace TravelBuddy.Ciudades
         public string City { get; set; }
         public string Country { get; set; }
         public string Region { get; set; }
+        public int? Population { get; set; }
+        public double? Latitud { get; set; }
+        public double? Longitud { get; set; }
     }
 }

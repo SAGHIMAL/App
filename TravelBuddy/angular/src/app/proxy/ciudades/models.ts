@@ -4,8 +4,13 @@ export interface CiudadDTO {
   city?: string;
   country?: string;
   region?: string;
+  population?: number;
+  latitud?: number;
+  longitud?: number;
 }
 
 export interface SearchCityInputDTO {
-  nombreParcial: string;
+  nombreParcial?: string;
+  paisId?: string;
+  minPoblacion?: number;
 }
