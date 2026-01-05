@@ -1,6 +1,7 @@
 import { authGuard, permissionGuard } from '@abp/ng.core';
 import { Routes } from '@angular/router';
 import { CiudadesComponent } from './ciudades/ciudades';
+import { CiudadDetalle } from './ciudades/ciudad-detalle/ciudad-detalle';
 import { Component } from '@angular/core';
 
 export const APP_ROUTES: Routes = [
@@ -21,7 +22,14 @@ export const APP_ROUTES: Routes = [
     path: 'setting-management',
     loadChildren: () => import('@abp/ng.setting-management').then(c => c.createRoutes()),
   },
-  { path: 'ciudades', 
+  { 
+    path: 'ciudades', 
     component: CiudadesComponent,
-    canActivate: [authGuard]},
+    canActivate: [authGuard]
+  },
+  {
+    path: 'ciudades/detalle/:id', 
+    component: CiudadDetalle
+  }
+
 ];

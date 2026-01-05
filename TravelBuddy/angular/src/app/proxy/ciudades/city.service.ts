@@ -9,6 +9,14 @@ export class CityService {
   apiName = 'Default';
   
 
+  getCityDetail = (geoDBId: number, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, CiudadDTO>({
+      method: 'GET',
+      url: `/api/app/city/city-detail/${geoDBId}`,
+    },
+    { apiName: this.apiName,...config });
+  
+
   searchCities = (input: SearchCityInputDTO, config?: Partial<Rest.Config>) =>
     this.restService.request<any, CiudadDTO[]>({
       method: 'POST',

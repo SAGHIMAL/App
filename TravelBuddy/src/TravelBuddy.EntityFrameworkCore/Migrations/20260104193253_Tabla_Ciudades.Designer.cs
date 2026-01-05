@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravelBuddy.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace TravelBuddy.Migrations
 {
     [DbContext(typeof(TravelBuddyDbContext))]
-    partial class TravelBuddyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260104193253_Tabla_Ciudades")]
+    partial class Tabla_Ciudades
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,8 +112,9 @@ namespace TravelBuddy.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 
-                    b.Property<int>("GeoDbId")
-                        .HasColumnType("int");
+                    b.Property<string>("GeoDbId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -126,10 +130,10 @@ namespace TravelBuddy.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("LastModifierId");
 
-                    b.Property<double?>("Latitud")
+                    b.Property<double>("Latitud")
                         .HasColumnType("float");
 
-                    b.Property<double?>("Longitud")
+                    b.Property<double>("Longitud")
                         .HasColumnType("float");
 
                     b.Property<string>("Nombre")

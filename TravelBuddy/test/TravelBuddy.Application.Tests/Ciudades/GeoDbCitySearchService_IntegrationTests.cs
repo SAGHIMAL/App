@@ -22,8 +22,9 @@ namespace TravelBuddy.Ciudades
         public async Task SearchByNameAsync_ShouldReturnRealCities_WhenApiIsCalled()
         {
             var nombreParcial = "Rio";
+            var input = new SearchCityInputDTO { nombreParcial = nombreParcial };
 
-            var result = await _citySearchService.SearchByNameAsync(nombreParcial);
+            var result = await _citySearchService.SearchCitiesAsync(input);
 
           
             result.ShouldNotBeNull();
