@@ -10,13 +10,15 @@ using Volo.Abp.FeatureManagement;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.Uow;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 
 namespace TravelBuddy.EntityFrameworkCore;
 
 [DependsOn(
     typeof(TravelBuddyApplicationTestModule),
     typeof(TravelBuddyEntityFrameworkCoreModule),
-    typeof(AbpEntityFrameworkCoreSqliteModule)
+    typeof(AbpEntityFrameworkCoreSqliteModule),
+    typeof(AbpPermissionManagementEntityFrameworkCoreModule) 
 )]
 public class TravelBuddyEntityFrameworkCoreTestModule : AbpModule
 {

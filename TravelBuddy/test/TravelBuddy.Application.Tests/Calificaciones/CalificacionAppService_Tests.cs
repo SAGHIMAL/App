@@ -64,12 +64,12 @@ namespace TravelBuddy.Calificaciones
                 
                 await Should.ThrowAsync<AbpAuthorizationException>(async () =>
                 {
-                    await _calificacionAppService.CrearAsync(input);
+                    await _calificacionAppService.CreateAsync(input);
                 });
                 
                 await Should.ThrowAsync<AbpAuthorizationException>(async () =>
             {
-                await _calificacionAppService.CrearAsync(input);
+                await _calificacionAppService.CreateAsync(input);
             });
             }
         }
@@ -112,7 +112,7 @@ namespace TravelBuddy.Calificaciones
                         Puntaje = 5,
                         Comentario = "Prueba de integración"
                     };
-                    await _calificacionAppService.CrearAsync(input);
+                    await _calificacionAppService.CreateAsync(input);
                     
 
                     await WithUnitOfWorkAsync(async () =>
@@ -190,7 +190,7 @@ namespace TravelBuddy.Calificaciones
                 };
 
                 
-                await _calificacionAppService.CrearAsync(input);
+                await _calificacionAppService.CreateAsync(input);
 
                
                 await WithUnitOfWorkAsync(async () =>
@@ -231,7 +231,7 @@ namespace TravelBuddy.Calificaciones
                 };
 
                 
-                await _calificacionAppService.CrearAsync(input);
+                await _calificacionAppService.CreateAsync(input);
 
               
                 var inputDuplicado = new crearCalificacionDTO
@@ -244,7 +244,7 @@ namespace TravelBuddy.Calificaciones
                
                 var exception = await Should.ThrowAsync<UserFriendlyException>(async () =>
                 {
-                    await _calificacionAppService.CrearAsync(inputDuplicado);
+                    await _calificacionAppService.CreateAsync(inputDuplicado);
                 });
 
                 
