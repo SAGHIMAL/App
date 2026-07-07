@@ -7,6 +7,7 @@ using Volo.Abp.Data;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
+
 namespace TravelBuddy;
 
 [DependsOn(
@@ -25,13 +26,14 @@ public class TravelBuddyTestBaseModule : AbpModule
         });
 
         context.Services.AddAlwaysAllowAuthorization();
+       
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         SeedTestData(context);
     }
-
+   
     private static void SeedTestData(ApplicationInitializationContext context)
     {
         AsyncHelper.RunSync(async () =>
@@ -43,5 +45,5 @@ public class TravelBuddyTestBaseModule : AbpModule
                     .SeedAsync();
             }
         });
-    }
+    } 
 }
