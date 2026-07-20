@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TravelBuddy.Calificaciones;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -13,11 +14,44 @@ namespace TravelBuddy.Ciudades
     {
         private readonly ICitySearchService _citySearchService;
         private readonly IRepository<Ciudad, Guid> _cityRepository;
+        private readonly IRepository<Calificacion, Guid> _calificacionRepository;
 
-        public CityAppService(ICitySearchService citySearchService, IRepository<Ciudad, Guid> ciudadRepository)
+        public CityAppService(
+            ICitySearchService citySearchService,
+            IRepository<Ciudad, Guid> ciudadRepository,
+            IRepository<Calificacion, Guid> calificacionRepository)
         {
             _citySearchService = citySearchService;
             _cityRepository = ciudadRepository;
+            _calificacionRepository = calificacionRepository;
+        }
+
+        public async Task<List<CiudadPopularDTO>> GetCiudadesPopularesAsync(int cantidad = 10)
+        {
+            cantidad = Math.Clamp(cantidad, 1, 50);
+
+            var calificaciones = await _calificacionRepository.GetListAsync();
+            var ciudades = await _cityRepository.GetListAsync();
+
+            return calificaciones
+                .GroupBy(c => c.DestinoId)
+                .Join(ciudades,
+                    grupo => grupo.Key,
+                    ciudad => ciudad.Id,
+                    (grupo, ciudad) => new CiudadPopularDTO
+                    {
+                        GeoDbId = ciudad.GeoDbId,
+                        IdLocal = ciudad.Id,
+                        Nombre = ciudad.Nombre,
+                        Pais = ciudad.Pais,
+                        Region = ciudad.Region,
+                        Promedio = grupo.Average(c => c.Puntaje),
+                        CantidadCalificaciones = grupo.Count()
+                    })
+                .OrderByDescending(p => p.CantidadCalificaciones)
+                .ThenByDescending(p => p.Promedio)
+                .Take(cantidad)
+                .ToList();
         }
 
         public async Task<List<CiudadDTO>> SearchCitiesAsync(SearchCityInputDTO input)
@@ -47,6 +81,7 @@ namespace TravelBuddy.Ciudades
                 return new CiudadDTO
                 {
                     Id = ciudadLocal.GeoDbId,
+                    IdLocal = ciudadLocal.Id,
                     City = ciudadLocal.Nombre,
                     Country = ciudadLocal.Pais,
                     Region = ciudadLocal.Region,
@@ -75,13 +110,12 @@ namespace TravelBuddy.Ciudades
                 ciudadExterna.Longitude ?? 0
             );
 
-            //nuevaCiudad.Latitud = ciudadExterna.Latitude ?? 0;
-            //nuevaCiudad.Longitud = ciudadExterna.Longitude ?? 0;
             await _cityRepository.InsertAsync(nuevaCiudad);
 
             return new CiudadDTO
             {
                 Id = nuevaCiudad.GeoDbId,
+                IdLocal = nuevaCiudad.Id,
                 City = nuevaCiudad.Nombre,
                 Country = nuevaCiudad.Pais,
                 Region = nuevaCiudad.Region,

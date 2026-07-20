@@ -1,31 +1,45 @@
-﻿using Shouldly;
+using Shouldly;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TravelBuddy.Ciudades;
 using TravelBuddy.Favoritos;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Modularity;
+using Volo.Abp.Security.Claims;
 using Xunit;
 
 namespace TravelBuddy.Favoritos
 {
-    public class FavoritoAppServiceTests : TravelBuddyApplicationTestBase<TravelBuddyApplicationTestModule>
+    public abstract class FavoritoAppService_Tests<TStartupModule> : TravelBuddyApplicationTestBase<TStartupModule>
+        where TStartupModule : IAbpModule
     {
         private readonly IFavoritoAppService _favoritoAppService;
         private readonly IRepository<Ciudad, Guid> _ciudadRepository;
         private readonly IRepository<Favorito, Guid> _favoritoRepository;
+        private readonly ICurrentPrincipalAccessor _currentPrincipalAccessor;
 
-        public FavoritoAppServiceTests()
+        public FavoritoAppService_Tests()
         {
             _favoritoAppService = GetRequiredService<IFavoritoAppService>();
             _ciudadRepository = GetRequiredService<IRepository<Ciudad, Guid>>();
             _favoritoRepository = GetRequiredService<IRepository<Favorito, Guid>>();
+            _currentPrincipalAccessor = GetRequiredService<ICurrentPrincipalAccessor>();
+        }
+
+        private static ClaimsPrincipal CrearPrincipal(Guid userId)
+        {
+            return new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(AbpClaimTypes.UserName, "testuser-favoritos"),
+                new Claim(AbpClaimTypes.UserId, userId.ToString())
+            }));
         }
 
         [Fact]
         public async Task Should_Add_Destino_To_Favoritos()
         {
-            // 1. Arrange
+            var userId = Guid.NewGuid();
             var ciudadId = Guid.NewGuid();
             await WithUnitOfWorkAsync(async () =>
             {
@@ -34,61 +48,66 @@ namespace TravelBuddy.Favoritos
                 ));
             });
 
-            // 2. Act: Pasamos SOLO el GUID (Corregido)
-            await _favoritoAppService.CreateAsync(ciudadId);
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(userId)))
+            {
+                await _favoritoAppService.CreateAsync(ciudadId);
+            }
 
-            // 3. Assert
             await WithUnitOfWorkAsync(async () =>
             {
                 var favorito = await _favoritoRepository.FirstOrDefaultAsync(f => f.DestinoId == ciudadId);
                 favorito.ShouldNotBeNull();
                 favorito.DestinoId.ShouldBe(ciudadId);
+                favorito.UserId.ShouldBe(userId);
             });
         }
 
         [Fact]
         public async Task Should_Remove_Destino_From_Favoritos()
         {
-            // 1. Arrange
+            var userId = Guid.NewGuid();
             var ciudadId = Guid.NewGuid();
 
             await WithUnitOfWorkAsync(async () =>
             {
-                // Simulamos que ya existe en la DB
-                await _favoritoRepository.InsertAsync(new Favorito(Guid.NewGuid(), Guid.NewGuid(), ciudadId));
+                await _favoritoRepository.InsertAsync(new Favorito(Guid.NewGuid(), ciudadId, userId));
             });
 
-            // 2. Act: Pasamos SOLO el GUID del destino (Corregido)
-            await _favoritoAppService.DeleteAsync(ciudadId);
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(userId)))
+            {
+                await _favoritoAppService.DeleteAsync(ciudadId);
+            }
 
-            // 3. Assert
             await WithUnitOfWorkAsync(async () =>
             {
                 var favorito = await _favoritoRepository.FirstOrDefaultAsync(f => f.DestinoId == ciudadId);
-                favorito.ShouldBeNull(); // Debe haberse borrado
+                favorito.ShouldBeNull();
             });
         }
 
         [Fact]
         public async Task Should_Get_My_List_Of_Favoritos()
         {
-            // 1. Arrange
+            var userId = Guid.NewGuid();
             var ciudadId1 = Guid.NewGuid();
             var ciudadId2 = Guid.NewGuid();
 
             await WithUnitOfWorkAsync(async () =>
             {
-                await _favoritoRepository.InsertAsync(new Favorito(Guid.NewGuid(), Guid.NewGuid(), ciudadId1));
-                await _favoritoRepository.InsertAsync(new Favorito(Guid.NewGuid(), Guid.NewGuid(), ciudadId2));
+                await _favoritoRepository.InsertAsync(new Favorito(Guid.NewGuid(), ciudadId1, userId));
+                await _favoritoRepository.InsertAsync(new Favorito(Guid.NewGuid(), ciudadId2, userId));
+                await _favoritoRepository.InsertAsync(new Favorito(Guid.NewGuid(), ciudadId1, Guid.NewGuid()));
             });
 
-            // 2. Act: Llamamos SIN argumentos (Corregido)
-            var result = await _favoritoAppService.GetListAsync();
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(userId)))
+            {
+                var result = await _favoritoAppService.GetListAsync();
 
-            // 3. Assert
-            result.ShouldNotBeNull();
-            result.Count.ShouldBeGreaterThanOrEqualTo(2);
-            result.ShouldContain(x => x.DestinoId == ciudadId1);
+                result.ShouldNotBeNull();
+                result.Count.ShouldBe(2);
+                result.ShouldContain(x => x.DestinoId == ciudadId1);
+                result.ShouldContain(x => x.DestinoId == ciudadId2);
+            }
         }
     }
 }

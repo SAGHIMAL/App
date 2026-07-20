@@ -8,7 +8,7 @@ using TravelBuddy.Destinos;
 
 namespace TravelBuddy.EntityFrameworkCore.Applications.Destinos;
 
-[CollectionDefinition(TravelBuddyTestConsts.CollectionDefinitionName)]
+[Collection(TravelBuddyTestConsts.CollectionDefinitionName)]
 public class EfCoreDestinoAppService_Test: DestinoAppService_Tests<TravelBuddyEntityFrameworkCoreTestModule>
 {
 

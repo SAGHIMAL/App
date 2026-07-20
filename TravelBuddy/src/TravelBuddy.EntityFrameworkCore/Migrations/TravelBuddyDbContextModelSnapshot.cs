@@ -24,6 +24,37 @@ namespace TravelBuddy.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("TravelBuddy.ApisExternas.RegistroLlamadaApi", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("Exitosa")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NombreApi")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AppRegistrosLlamadasApi", (string)null);
+                });
+
             modelBuilder.Entity("TravelBuddy.Calificaciones.Calificacion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -196,6 +227,9 @@ namespace TravelBuddy.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.ToTable("AppComentarios", (string)null);
@@ -323,6 +357,9 @@ namespace TravelBuddy.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Valoracion")
                         .HasColumnType("int");
 
@@ -397,7 +434,7 @@ namespace TravelBuddy.Migrations
                     b.Property<bool>("NotificarComentariosEnFavoritos")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("NotiificarEventosDestinos")
+                    b.Property<bool>("NotificarEventosDestinos")
                         .HasColumnType("bit");
 
                     b.Property<Guid>("UserId")
@@ -406,6 +443,55 @@ namespace TravelBuddy.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AppPreferenciasNotificaciones", (string)null);
+                });
+
+            modelBuilder.Entity("TravelBuddy.Seguimientos.DestinoSeguido", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid>("DestinoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DestinoId");
+
+                    b.HasIndex("UserId", "DestinoId")
+                        .IsUnique();
+
+                    b.ToTable("AppDestinosSeguidos", (string)null);
                 });
 
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLog", b =>
@@ -2175,6 +2261,15 @@ namespace TravelBuddy.Migrations
                         .IsUnique();
 
                     b.ToTable("AbpSettingDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("TravelBuddy.Seguimientos.DestinoSeguido", b =>
+                {
+                    b.HasOne("TravelBuddy.Destinos.Destino", null)
+                        .WithMany()
+                        .HasForeignKey("DestinoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLogAction", b =>

@@ -10,5 +10,6 @@ namespace TravelBuddy.Comentarios
     public interface IComentarioAppService : IApplicationService
     {
         Task CreateAsync(CrearComentarioDTO input);
+        Task<List<ComentarioDTO>> GetListPorDestinoAsync(Guid destinoId);
     }
 }

@@ -66,11 +66,6 @@ namespace TravelBuddy.Calificaciones
                 {
                     await _calificacionAppService.CreateAsync(input);
                 });
-                
-                await Should.ThrowAsync<AbpAuthorizationException>(async () =>
-            {
-                await _calificacionAppService.CreateAsync(input);
-            });
             }
         }
        
@@ -210,9 +205,15 @@ namespace TravelBuddy.Calificaciones
            
             var userId = Guid.NewGuid();
             var username = "testuser-duplicate";
-            await WithUnitOfWorkAsync(async () => { new IdentityUser(userId, username, "testuser@example.com"); });
+            await WithUnitOfWorkAsync(async () =>
+            {
+                (await _identityUserManager.CreateAsync(new IdentityUser(userId, username, "testuser@example.com"), "TestPassword123!")).Succeeded.ShouldBeTrue();
+            });
             var destinoId = Guid.NewGuid();
-            await WithUnitOfWorkAsync(async () => { new Destino(destinoId, "Francia", "Paris", "48.8566° N, 2.3522° E", "https://example.com/paris.jpg", 2148000); });
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _destinoRepository.InsertAsync(new Destino(destinoId, "Francia", "Paris", "48.8566° N, 2.3522° E", "https://example.com/paris.jpg", 2148000));
+            });
 
             var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(
                         new Claim[]
@@ -250,6 +251,163 @@ namespace TravelBuddy.Calificaciones
                 
                 exception.Message.ShouldBe("Ya has calificado este destino.");
             }
+        }
+
+
+        [Fact]
+        public async Task Should_Calcular_El_Promedio_Del_Destino()
+        {
+            var destinoId = Guid.NewGuid();
+            var otroDestinoId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _calificacionRepository.InsertAsync(new Calificacion(Guid.NewGuid(), destinoId, Guid.NewGuid(), 5, "Excelente"));
+                await _calificacionRepository.InsertAsync(new Calificacion(Guid.NewGuid(), destinoId, Guid.NewGuid(), 2, "Regular"));
+                await _calificacionRepository.InsertAsync(new Calificacion(Guid.NewGuid(), otroDestinoId, Guid.NewGuid(), 1, null));
+            });
+
+            var promedio = await _calificacionAppService.GetPromedioAsync(destinoId);
+
+            promedio.ShouldBe(3.5);
+        }
+
+        [Fact]
+        public async Task Should_Devolver_Promedio_Cero_Sin_Calificaciones()
+        {
+            var promedio = await _calificacionAppService.GetPromedioAsync(Guid.NewGuid());
+
+            promedio.ShouldBe(0);
+        }
+
+
+        private static ClaimsPrincipal CrearPrincipal(Guid userId, string username)
+        {
+            return new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(AbpClaimTypes.UserName, username),
+                new Claim(AbpClaimTypes.UserId, userId.ToString())
+            }));
+        }
+
+        [Fact]
+        public async Task Should_Update_Own_Calificacion()
+        {
+            var userId = Guid.NewGuid();
+            var calificacionId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _calificacionRepository.InsertAsync(
+                    new Calificacion(calificacionId, Guid.NewGuid(), userId, 2, "Regular"));
+            });
+
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(userId, "testuser-update")))
+            {
+                var result = await _calificacionAppService.UpdateAsync(calificacionId, new crearCalificacionDTO
+                {
+                    DestinoId = Guid.NewGuid(),
+                    Puntaje = 5,
+                    Comentario = "Mejoro mucho"
+                });
+
+                result.Puntaje.ShouldBe(5);
+                result.Comentario.ShouldBe("Mejoro mucho");
+            }
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var calificacion = await _calificacionRepository.GetAsync(calificacionId);
+                calificacion.Puntaje.ShouldBe(5);
+                calificacion.Comentario.ShouldBe("Mejoro mucho");
+                calificacion.UserId.ShouldBe(userId);
+            });
+        }
+
+        [Fact]
+        public async Task Should_Not_Update_Calificacion_De_Otro_Usuario()
+        {
+            var duenioId = Guid.NewGuid();
+            var atacanteId = Guid.NewGuid();
+            var calificacionId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _calificacionRepository.InsertAsync(
+                    new Calificacion(calificacionId, Guid.NewGuid(), duenioId, 4, "Del duenio"));
+            });
+
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(atacanteId, "testuser-atacante")))
+            {
+                await Should.ThrowAsync<AbpAuthorizationException>(async () =>
+                {
+                    await _calificacionAppService.UpdateAsync(calificacionId, new crearCalificacionDTO
+                    {
+                        DestinoId = Guid.NewGuid(),
+                        Puntaje = 1,
+                        Comentario = "Hackeado"
+                    });
+                });
+            }
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var calificacion = await _calificacionRepository.GetAsync(calificacionId);
+                calificacion.Puntaje.ShouldBe(4);
+                calificacion.Comentario.ShouldBe("Del duenio");
+            });
+        }
+
+        [Fact]
+        public async Task Should_Delete_Own_Calificacion()
+        {
+            var userId = Guid.NewGuid();
+            var calificacionId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _calificacionRepository.InsertAsync(
+                    new Calificacion(calificacionId, Guid.NewGuid(), userId, 3, "Para borrar"));
+            });
+
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(userId, "testuser-delete")))
+            {
+                await _calificacionAppService.DeleteAsync(calificacionId);
+            }
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var calificacion = await _calificacionRepository.FirstOrDefaultAsync(c => c.Id == calificacionId);
+                calificacion.ShouldBeNull();
+            });
+        }
+
+        [Fact]
+        public async Task Should_Not_Delete_Calificacion_De_Otro_Usuario()
+        {
+            var duenioId = Guid.NewGuid();
+            var atacanteId = Guid.NewGuid();
+            var calificacionId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _calificacionRepository.InsertAsync(
+                    new Calificacion(calificacionId, Guid.NewGuid(), duenioId, 4, "Del duenio"));
+            });
+
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(atacanteId, "testuser-atacante-del")))
+            {
+                await Should.ThrowAsync<AbpAuthorizationException>(async () =>
+                {
+                    await _calificacionAppService.DeleteAsync(calificacionId);
+                });
+            }
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var calificacion = await _calificacionRepository.FirstOrDefaultAsync(c => c.Id == calificacionId);
+                calificacion.ShouldNotBeNull();
+            });
         }
     }
     }

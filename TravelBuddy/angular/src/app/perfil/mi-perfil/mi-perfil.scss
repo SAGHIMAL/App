@@ -1,0 +1,10 @@
+.foto-perfil {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.sin-foto {
+  background-color: var(--bs-light, #f8f9fa);
+}

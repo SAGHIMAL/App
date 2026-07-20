@@ -10,8 +10,8 @@ namespace TravelBuddy.Notificaciones
     public class PreferenciaNotificacion : Entity<Guid>
     {
         public Guid UserId { get; set; }
-        public bool NotificarComentariosEnFavoritos { get; set; } = true; 
-        public bool NotiificarEventosDestinos { get; set; } = true; 
+        public bool NotificarComentariosEnFavoritos { get; set; } = true;
+        public bool NotificarEventosDestinos { get; set; } = true;
 
         protected PreferenciaNotificacion() { } 
 
@@ -19,7 +19,7 @@ namespace TravelBuddy.Notificaciones
         {
             UserId = userId;
             NotificarComentariosEnFavoritos = true;
-            NotiificarEventosDestinos = true;   
+            NotificarEventosDestinos = true;
         }
     }
 }

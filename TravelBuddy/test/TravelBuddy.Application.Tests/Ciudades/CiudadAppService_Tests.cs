@@ -1,10 +1,11 @@
-﻿using NSubstitute; 
+﻿using NSubstitute;
 using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TravelBuddy.Calificaciones;
 using Volo.Abp.Domain.Repositories;
 using Xunit;
 
@@ -15,14 +16,16 @@ namespace TravelBuddy.Ciudades
         private readonly ICitySearchService _citySearchServiceMock;
         private readonly CityAppService _cityAppService;
         private readonly IRepository<Ciudad, Guid> _ciudadRepositoryMock;
+        private readonly IRepository<Calificacion, Guid> _calificacionRepositoryMock;
 
         public CityAppService_Tests()
         {
             _citySearchServiceMock = Substitute.For<ICitySearchService>();
 
             _ciudadRepositoryMock = Substitute.For<IRepository<Ciudad, Guid>>();
+            _calificacionRepositoryMock = Substitute.For<IRepository<Calificacion, Guid>>();
 
-            _cityAppService = new CityAppService(_citySearchServiceMock, _ciudadRepositoryMock);
+            _cityAppService = new CityAppService(_citySearchServiceMock, _ciudadRepositoryMock, _calificacionRepositoryMock);
         }
 
 
@@ -69,8 +72,6 @@ namespace TravelBuddy.Ciudades
             result.ShouldNotBeNull();
             result.Count.ShouldBe(0);
         }
-
-
 
     }
 }

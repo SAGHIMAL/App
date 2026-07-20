@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TravelBuddy.Calificaciones;
 using TravelBuddy.Ciudades;
 using TravelBuddy.Destinos;
-using TravelBuddy.Experiencias; // Importante
+using TravelBuddy.Experiencias;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
@@ -20,6 +20,8 @@ using TravelBuddy.Favoritos;
 using TravelBuddy.Notificaciones;
 using TravelBuddy.EntityFrameworkCore;
 using TravelBuddy.Comentarios;
+using TravelBuddy.Seguimientos;
+using TravelBuddy.ApisExternas;
 
 
 namespace TravelBuddy.EntityFrameworkCore;
@@ -40,6 +42,8 @@ public class TravelBuddyDbContext :
     public DbSet<Notificacion> Notificaciones { get; set; }
 
     public DbSet<PreferenciaNotificacion> PreferenciasNotificaciones { get; set; }
+    public DbSet<DestinoSeguido> DestinosSeguidos { get; set; }
+    public DbSet<RegistroLlamadaApi> RegistrosLlamadasApi { get; set; }
     #region Entities from the modules
 
     public DbSet<IdentityUser> Users { get; set; }
@@ -52,7 +56,6 @@ public class TravelBuddyDbContext :
     public DbSet<IdentitySession> Sessions { get; set; }
     #endregion
     public DbSet<Comentario> Comentarios { get; set; }  
-    //constructor
     public TravelBuddyDbContext(DbContextOptions<TravelBuddyDbContext> options)
         : base(options)
     {
@@ -72,7 +75,6 @@ public class TravelBuddyDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureBlobStoring();
 
-        //entidades
         builder.Entity<Destino>(b =>
         {
             b.ToTable(TravelBuddyConsts.DbTablePrefix + "Destinos", TravelBuddyConsts.DbSchema);
@@ -138,6 +140,28 @@ public class TravelBuddyDbContext :
         {
             b.ToTable(TravelBuddyConsts.DbTablePrefix + "Comentarios", TravelBuddyConsts.DbSchema);
             b.ConfigureByConvention();
+        });
+
+        builder.Entity<RegistroLlamadaApi>(b =>
+        {
+            b.ToTable(TravelBuddyConsts.DbTablePrefix + "RegistrosLlamadasApi", TravelBuddyConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.NombreApi).IsRequired().HasMaxLength(100);
+            b.Property(x => x.Endpoint).IsRequired().HasMaxLength(200);
+        });
+
+        builder.Entity<DestinoSeguido>(b =>
+        {
+            b.ToTable(TravelBuddyConsts.DbTablePrefix + "DestinosSeguidos", TravelBuddyConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.HasIndex(x => new { x.UserId, x.DestinoId }).IsUnique();
+
+            b.HasOne<Destino>()
+                .WithMany()
+                .HasForeignKey(x => x.DestinoId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
     }

@@ -10,5 +10,6 @@ namespace TravelBuddy.Ciudades
     public interface ICityAppService: IApplicationService
     {
         Task<List<CiudadDTO>> SearchCitiesAsync(SearchCityInputDTO input);
+        Task<List<CiudadPopularDTO>> GetCiudadesPopularesAsync(int cantidad = 10);
     }
 }

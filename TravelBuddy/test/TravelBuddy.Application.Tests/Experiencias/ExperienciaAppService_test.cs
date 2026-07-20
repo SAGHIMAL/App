@@ -1,35 +1,50 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TravelBuddy.Ciudades;
 using TravelBuddy.Experiencias;
+using Volo.Abp.Authorization;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Guids;
-using Volo.Abp.Modularity; 
+using Volo.Abp.Modularity;
+using Volo.Abp.Security.Claims;
 using Xunit;
 
 namespace TravelBuddy.Experiencias
 {
-    public class ExperienciaAppServiceTests : TravelBuddyApplicationTestBase<TravelBuddyTestBaseModule>
+    public abstract class ExperienciaAppService_Tests<TStartupModule> : TravelBuddyApplicationTestBase<TStartupModule>
+        where TStartupModule : IAbpModule
     {
         private readonly IExperienciaAppService _experienciaAppService;
         private readonly IRepository<Ciudad, Guid> _ciudadRepository;
         private readonly IRepository<Experiencia, Guid> _experienciaRepository;
+        private readonly ICurrentPrincipalAccessor _currentPrincipalAccessor;
 
-        public ExperienciaAppServiceTests()
+        public ExperienciaAppService_Tests()
         {
             _experienciaAppService = GetRequiredService<IExperienciaAppService>();
             _ciudadRepository = GetRequiredService<IRepository<Ciudad, Guid>>();
             _experienciaRepository = GetRequiredService<IRepository<Experiencia, Guid>>();
+            _currentPrincipalAccessor = GetRequiredService<ICurrentPrincipalAccessor>();
+        }
+
+        private static ClaimsPrincipal CrearPrincipal(Guid userId)
+        {
+            return new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(AbpClaimTypes.UserName, "testuser-experiencias"),
+                new Claim(AbpClaimTypes.UserId, userId.ToString())
+            }));
         }
 
         [Fact]
         public async Task Should_Create_A_Valid_Experiencia()
         {
-            // 1. Arrange
             var ciudadId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             await WithUnitOfWorkAsync(async () =>
             {
@@ -55,28 +70,29 @@ namespace TravelBuddy.Experiencias
                 CityID = ciudadId
             };
 
-            // 2. Act
-            var result = await _experienciaAppService.CreateAsync(input);
+            ExperienciaDTO result;
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(userId)))
+            {
+                result = await _experienciaAppService.CreateAsync(input);
+            }
 
-            // 3. Assert
             result.ShouldNotBeNull();
             result.Titulo.ShouldBe("Atardecer Mágico");
             result.Id.ShouldNotBe(Guid.Empty);
 
-            // 4. Assert DB
             await WithUnitOfWorkAsync(async () =>
             {
                 var experienciaEnDb = await _experienciaRepository.GetAsync(result.Id);
                 experienciaEnDb.ShouldNotBeNull();
                 experienciaEnDb.Titulo.ShouldBe("Atardecer Mágico");
                 experienciaEnDb.CityID.ShouldBe(ciudadId);
+                experienciaEnDb.UserId.ShouldBe(userId);
             });
         }
 
         [Fact]
         public async Task Should_Get_List_Of_Experiencias()
         {
-            // 1. Arrange
             var ciudadId = Guid.NewGuid();
 
             await WithUnitOfWorkAsync(async () =>
@@ -93,7 +109,6 @@ namespace TravelBuddy.Experiencias
                 ));
             });
 
-            // Insertamos datos iniciales
             await WithUnitOfWorkAsync(async () =>
             {
                 await _experienciaRepository.InsertAsync(new Experiencia(
@@ -101,17 +116,146 @@ namespace TravelBuddy.Experiencias
                     "Surf en La Pedrera",
                     "Olas gigantes",
                     ciudadId,
+                    Guid.NewGuid(),
                     DateTime.Now,
                     TipoValoracion.Positiva
                 ));
             });
 
-            // 2. Act
             var result = await _experienciaAppService.GetListAsync(new GetExperienciasInput());
 
-            // 3. Assert
             result.TotalCount.ShouldBeGreaterThan(0);
             result.Items.ShouldContain(x => x.Titulo == "Surf en La Pedrera");
+        }
+
+
+        [Fact]
+        public async Task Should_Update_Own_Experiencia()
+        {
+            var userId = Guid.NewGuid();
+            var experienciaId = Guid.NewGuid();
+            var ciudadId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _experienciaRepository.InsertAsync(new Experiencia(
+                    experienciaId, "Titulo original", "Descripcion original",
+                    ciudadId, userId, DateTime.Now, TipoValoracion.Neutral));
+            });
+
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(userId)))
+            {
+                var result = await _experienciaAppService.UpdateAsync(experienciaId, new CrearExperienciaDTO
+                {
+                    CityID = Guid.NewGuid(),
+                    Titulo = "Titulo editado",
+                    Descripcion = "Descripcion editada",
+                    FechaExperiencia = DateTime.Now,
+                    Valoracion = TipoValoracion.Positiva
+                });
+
+                result.Titulo.ShouldBe("Titulo editado");
+            }
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var experiencia = await _experienciaRepository.GetAsync(experienciaId);
+                experiencia.Titulo.ShouldBe("Titulo editado");
+                experiencia.Descripcion.ShouldBe("Descripcion editada");
+                experiencia.Valoracion.ShouldBe(TipoValoracion.Positiva);
+                experiencia.CityID.ShouldBe(ciudadId);
+                experiencia.UserId.ShouldBe(userId);
+            });
+        }
+
+        [Fact]
+        public async Task Should_Not_Update_Experiencia_De_Otro_Usuario()
+        {
+            var duenioId = Guid.NewGuid();
+            var atacanteId = Guid.NewGuid();
+            var experienciaId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _experienciaRepository.InsertAsync(new Experiencia(
+                    experienciaId, "Del duenio", "Descripcion del duenio",
+                    Guid.NewGuid(), duenioId, DateTime.Now, TipoValoracion.Positiva));
+            });
+
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(atacanteId)))
+            {
+                await Should.ThrowAsync<AbpAuthorizationException>(async () =>
+                {
+                    await _experienciaAppService.UpdateAsync(experienciaId, new CrearExperienciaDTO
+                    {
+                        CityID = Guid.NewGuid(),
+                        Titulo = "Hackeado",
+                        Descripcion = "Hackeado",
+                        FechaExperiencia = DateTime.Now,
+                        Valoracion = TipoValoracion.Negativa
+                    });
+                });
+            }
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var experiencia = await _experienciaRepository.GetAsync(experienciaId);
+                experiencia.Titulo.ShouldBe("Del duenio");
+            });
+        }
+
+        [Fact]
+        public async Task Should_Delete_Own_Experiencia()
+        {
+            var userId = Guid.NewGuid();
+            var experienciaId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _experienciaRepository.InsertAsync(new Experiencia(
+                    experienciaId, "Para borrar", "Descripcion",
+                    Guid.NewGuid(), userId, DateTime.Now, TipoValoracion.Negativa));
+            });
+
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(userId)))
+            {
+                await _experienciaAppService.DeleteAsync(experienciaId);
+            }
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var experiencia = await _experienciaRepository.FirstOrDefaultAsync(e => e.Id == experienciaId);
+                experiencia.ShouldBeNull();
+            });
+        }
+
+        [Fact]
+        public async Task Should_Not_Delete_Experiencia_De_Otro_Usuario()
+        {
+            var duenioId = Guid.NewGuid();
+            var atacanteId = Guid.NewGuid();
+            var experienciaId = Guid.NewGuid();
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                await _experienciaRepository.InsertAsync(new Experiencia(
+                    experienciaId, "Del duenio", "Descripcion del duenio",
+                    Guid.NewGuid(), duenioId, DateTime.Now, TipoValoracion.Positiva));
+            });
+
+            using (_currentPrincipalAccessor.Change(CrearPrincipal(atacanteId)))
+            {
+                await Should.ThrowAsync<AbpAuthorizationException>(async () =>
+                {
+                    await _experienciaAppService.DeleteAsync(experienciaId);
+                });
+            }
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var experiencia = await _experienciaRepository.FirstOrDefaultAsync(e => e.Id == experienciaId);
+                experiencia.ShouldNotBeNull();
+            });
         }
     }
 }

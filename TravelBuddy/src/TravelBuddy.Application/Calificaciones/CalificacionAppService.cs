@@ -41,7 +41,12 @@ namespace TravelBuddy.Calificaciones
             return query;
         }
 
-      
+        [AllowAnonymous]
+        public override Task<PagedResultDto<CalificacionDTO>> GetListAsync(GetCalificacionesInput input)
+        {
+            return base.GetListAsync(input);
+        }
+
         [AllowAnonymous]
         public async Task<double> GetPromedioAsync(Guid destinoId)
         {
@@ -79,6 +84,33 @@ namespace TravelBuddy.Calificaciones
             await _calificacionRepository.InsertAsync(calificacion);
 
             return ObjectMapper.Map<Calificacion, CalificacionDTO>(calificacion);
+        }
+
+        public override async Task<CalificacionDTO> UpdateAsync(Guid id, crearCalificacionDTO input)
+        {
+            var calificacion = await _calificacionRepository.GetAsync(id);
+            ValidarPropiedad(calificacion);
+
+            calificacion.Actualizar(input.Puntaje, input.Comentario);
+            await _calificacionRepository.UpdateAsync(calificacion);
+
+            return ObjectMapper.Map<Calificacion, CalificacionDTO>(calificacion);
+        }
+
+        public override async Task DeleteAsync(Guid id)
+        {
+            var calificacion = await _calificacionRepository.GetAsync(id);
+            ValidarPropiedad(calificacion);
+
+            await _calificacionRepository.DeleteAsync(calificacion);
+        }
+
+        private void ValidarPropiedad(Calificacion calificacion)
+        {
+            if (calificacion.UserId != CurrentUser.GetId())
+            {
+                throw new AbpAuthorizationException("Solo puedes modificar tus propias calificaciones.");
+            }
         }
     }
 }

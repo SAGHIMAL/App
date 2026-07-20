@@ -7,23 +7,22 @@ using Volo.Abp.Domain.Entities.Auditing;
 
 namespace TravelBuddy.Comentarios
 {
-    public class Comentario : FullAuditedEntity<Guid>
+    public class Comentario : FullAuditedEntity<Guid>, IUserOwned
     {
-        public Guid DestinoId { get; set; } 
-        public string Texto { get; set; }   
+        public Guid DestinoId { get; set; }
+        public string Texto { get; set; }
 
-        public int Puntaje { get; set; } 
+        public Guid UserId { get; set; }
 
         protected Comentario() { }
 
-        public Comentario(Guid id, Guid destinoId, string texto, int puntaje)
+        public Comentario(Guid id, Guid destinoId, Guid userId, string texto)
             : base(id)
         {
             DestinoId = destinoId;
+            UserId = userId;
             Texto = texto;
-            Puntaje = puntaje;
-        
-        }  
+        }
 
     }
 }

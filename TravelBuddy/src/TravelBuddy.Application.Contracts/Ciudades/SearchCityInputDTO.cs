@@ -9,10 +9,9 @@ namespace TravelBuddy.Ciudades
 {
     public class SearchCityInputDTO
     {
-        [StringLength(100)] 
-        // El ? es porque puede ser null
+        [StringLength(100)]
         public string? nombreParcial { get; set; }
-        public string? paisId { get; set; } //Este paisId hace referencia al prefijo del pais (UY, AR, etc)
+        public string? paisId { get; set; }
         public int? minPoblacion { get; set; }
     }
 }

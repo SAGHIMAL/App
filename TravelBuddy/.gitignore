@@ -272,3 +272,8 @@ src/TravelBuddy.Blazor.Server.Tiered/Logs/*
 # IdentityServer temp files
 tempkey.rsa
 tempkey.jwk
+# Secretos locales (API keys, etc.) - nunca commitear
+appsettings.secrets.json
+
+# Logs locales
+Logs/
