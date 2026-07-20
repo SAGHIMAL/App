@@ -1,0 +1,13 @@
+.ranking {
+  width: 2.2rem;
+  height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.estrellas i {
+  font-size: 0.9rem;
+}

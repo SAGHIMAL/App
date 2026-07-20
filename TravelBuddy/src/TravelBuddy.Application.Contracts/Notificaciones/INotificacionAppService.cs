@@ -11,6 +11,7 @@ namespace TravelBuddy.Notificaciones
     {
         Task CrearNotificacionPruebaAsync(string mensaje, Guid? destinoId);
         Task MarcarComoLeidaAsync(Guid id);
+        Task MarcarComoNoLeidaAsync(Guid id);
 
         Task<List<NotificacionDTO>> GetNotificacionesASync();
 

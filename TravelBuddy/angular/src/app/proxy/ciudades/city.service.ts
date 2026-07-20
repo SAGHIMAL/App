@@ -1,4 +1,4 @@
-import type { CiudadDTO, SearchCityInputDTO } from './models';
+import type { CiudadDTO, CiudadPopularDTO, SearchCityInputDTO } from './models';
 import { RestService, Rest } from '@abp/ng.core';
 import { Injectable } from '@angular/core';
 
@@ -13,6 +13,15 @@ export class CityService {
     this.restService.request<any, CiudadDTO>({
       method: 'GET',
       url: `/api/app/city/city-detail/${geoDBId}`,
+    },
+    { apiName: this.apiName,...config });
+  
+
+  getCiudadesPopulares = (cantidad: number = 10, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, CiudadPopularDTO[]>({
+      method: 'GET',
+      url: '/api/app/city/ciudades-populares',
+      params: { cantidad },
     },
     { apiName: this.apiName,...config });
   

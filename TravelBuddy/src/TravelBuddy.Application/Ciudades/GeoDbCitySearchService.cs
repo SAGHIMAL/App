@@ -4,9 +4,14 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using TravelBuddy.ApisExternas;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Guids;
+using Volo.Abp.Uow;
 
 namespace TravelBuddy.Ciudades
 {
@@ -28,11 +33,38 @@ namespace TravelBuddy.Ciudades
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IGuidGenerator _guidGenerator;
+        private readonly IUnitOfWorkManager _unitOfWorkManager;
 
-        public GeoDbCitySearchService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public GeoDbCitySearchService(
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
+            IServiceProvider serviceProvider,
+            IGuidGenerator guidGenerator,
+            IUnitOfWorkManager unitOfWorkManager)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _serviceProvider = serviceProvider;
+            _guidGenerator = guidGenerator;
+            _unitOfWorkManager = unitOfWorkManager;
+        }
+
+        private async Task RegistrarLlamadaAsync(string endpoint, bool exitosa)
+        {
+            var repositorio = _serviceProvider.GetService<IRepository<RegistroLlamadaApi, Guid>>();
+            if (repositorio == null)
+            {
+                return;
+            }
+
+            using (var uow = _unitOfWorkManager.Begin())
+            {
+                await repositorio.InsertAsync(
+                    new RegistroLlamadaApi(_guidGenerator.Create(), "GeoDb", endpoint, exitosa));
+                await uow.CompleteAsync();
+            }
         }
 
         public async Task<List<CiudadesExternasDTO>> SearchCitiesAsync(SearchCityInputDTO input)
@@ -58,12 +90,8 @@ namespace TravelBuddy.Ciudades
                 urlBuilder.Append($"&countryIds={Uri.EscapeDataString(input.paisId)}");
             }
 
-            //La API de GeoDB no soporta filtro por región directamente
-            //if (!string.IsNullOrEmpty(input.region))
-            //{
-            //    urlBuilder.Append($"&region={Uri.EscapeDataString(input.region)}");
-            //}
-            
+
+
             if (input.minPoblacion.HasValue)
             {
                 urlBuilder.Append($"&minPopulation={input.minPoblacion.Value}");
@@ -72,6 +100,8 @@ namespace TravelBuddy.Ciudades
             string url = urlBuilder.ToString();
 
             HttpResponseMessage response = await client.GetAsync(url);
+
+            await RegistrarLlamadaAsync("cities (busqueda)", response.IsSuccessStatusCode);
 
             if (response.IsSuccessStatusCode)
             {
@@ -83,10 +113,8 @@ namespace TravelBuddy.Ciudades
                     PropertyNameCaseInsensitive = true
                 };
 
-                // Deserializamos la respuesta completa
                 var geoDbResponse = JsonSerializer.Deserialize<GeoDbResponse>(jsonResult, options);
 
-                // Devolvemos solo la lista de ciudades (el "data")
                 return geoDbResponse?.data ?? new List<CiudadesExternasDTO>();
             }
             else
@@ -108,6 +136,8 @@ namespace TravelBuddy.Ciudades
             string url = $"{baseUrl}/cities/{Uri.EscapeDataString(geoDbId.ToString())}";
 
             HttpResponseMessage response = await client.GetAsync(url);
+
+            await RegistrarLlamadaAsync("cities/{id} (detalle)", response.IsSuccessStatusCode);
 
             if (response.IsSuccessStatusCode)
             {

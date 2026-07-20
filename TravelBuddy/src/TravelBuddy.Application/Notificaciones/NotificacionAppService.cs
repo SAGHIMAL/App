@@ -29,8 +29,24 @@ using Volo.Abp.Users;
         }
         public async Task MarcarComoLeidaAsync(Guid id)
         {
+            await CambiarEstadoLeidaAsync(id, leida: true);
+        }
+
+        public async Task MarcarComoNoLeidaAsync(Guid id)
+        {
+            await CambiarEstadoLeidaAsync(id, leida: false);
+        }
+
+        private async Task CambiarEstadoLeidaAsync(Guid id, bool leida)
+        {
             var notificacion = await _notificacionRepository.GetAsync(id);
-            notificacion.Leida = true;
+
+            if (notificacion.UserId != CurrentUser.GetId())
+            {
+                throw new Volo.Abp.Authorization.AbpAuthorizationException("Solo puedes modificar tus propias notificaciones.");
+            }
+
+            notificacion.Leida = leida;
             await _notificacionRepository.UpdateAsync(notificacion);
         }
         public async Task<List<NotificacionDTO>> GetNotificacionesASync()
@@ -47,7 +63,6 @@ using Volo.Abp.Users;
 
             if (pref == null)
             {
-                // Si no configuró nada, devolvemos los defaults (todo activado)
                 return new PreferenciaNotificacionDTO
                 {
                     NotificarComentariosEnFavoritos = true,
@@ -65,14 +80,12 @@ using Volo.Abp.Users;
 
             if (pref == null)
             {
-                // Si no existe, la creamos
                 pref = new PreferenciaNotificacion(GuidGenerator.Create(), userId);
                 await _preferenciaRepository.InsertAsync(pref);
             }
 
-            // Actualizamos los valores
             pref.NotificarComentariosEnFavoritos = input.NotificarComentariosEnFavoritos;
-            pref.NotiificarEventosDestinos = input.NotificarEventosDestinos;
+            pref.NotificarEventosDestinos = input.NotificarEventosDestinos;
 
             await _preferenciaRepository.UpdateAsync(pref);
         }

@@ -4,6 +4,7 @@ using TravelBuddy.Experiencias;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Entities.Events.Distributed;
 using TravelBuddy.Calificaciones;
+using TravelBuddy.Comentarios;
 using TravelBuddy.Favoritos;
 using TravelBuddy.Notificaciones;
 
@@ -20,7 +21,8 @@ public class TravelBuddyApplicationAutoMapperProfile : Profile
         CreateMap < CreateUpdatedestinoDTO, Destino >();   
         CreateMap < Experiencia, ExperienciaDTO >();
         CreateMap < CrearExperienciaDTO, Experiencia >();   
-        CreateMap < Calificacion, CalificacionDTO >(); 
+        CreateMap < Calificacion, CalificacionDTO >();
+        CreateMap<Comentario, ComentarioDTO>();
         CreateMap <Favorito, FavoritoDTO >();
         CreateMap < Notificacion, NotificacionDTO >();
         CreateMap<PreferenciaNotificacion, PreferenciaNotificacionDTO>();

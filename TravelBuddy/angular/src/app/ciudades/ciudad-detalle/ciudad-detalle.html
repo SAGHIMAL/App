@@ -51,7 +51,29 @@
         </div>
     </div>
 
-    <div class="card-footer bg-white text-end p-3">
+    <div class="card-body p-4 border-top" *ngIf="ciudad.idLocal">
+      <app-calificaciones-destino [destinoId]="ciudad.idLocal"></app-calificaciones-destino>
+    </div>
+
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center p-3">
+      <div class="d-flex align-items-center gap-2">
+        <ng-container *ngIf="estaLogueado">
+          <button
+            *ngIf="!destinoGuardado"
+            class="btn btn-primary px-4"
+            (click)="guardarDestino()"
+            [disabled]="guardandoDestino"
+          >
+            <i class="fa fa-bookmark me-1"></i>
+            {{ guardandoDestino ? 'Guardando...' : 'Guardar destino' }}
+          </button>
+          <span *ngIf="destinoGuardado" class="badge bg-success fs-6">
+            <i class="fa fa-check me-1"></i>Destino guardado
+          </span>
+        </ng-container>
+        <small *ngIf="errorDestino" class="text-danger">{{ errorDestino }}</small>
+      </div>
+
       <button class="btn btn-secondary px-4" (click)="volver()">Volver</button>
     </div>
   </div>

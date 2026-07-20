@@ -16,7 +16,5 @@ namespace TravelBuddy.Comentarios
         [Required]
         [StringLength(500)]
         public string Texto { get; set; }
-
-        [Range(1,5)] public int Puntaje { get; set;}    
     }
 }

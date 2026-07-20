@@ -36,16 +36,14 @@ namespace TravelBuddy.Comentarios
         {
             var currentUserId = CurrentUser.GetId();
 
-            // CAMBIO 1: Agregamos input.Puntaje al constructor
             var comentario = new Comentario(
                 GuidGenerator.Create(),
                 input.DestinoId,
-                input.Texto,
-                input.Puntaje 
+                currentUserId,
+                input.Texto
             );
             await _comentarioRepository.InsertAsync(comentario);
 
-            // --- Lógica de Notificaciones (Igual que antes) ---
             var fans = await _favoritoRepository.GetListAsync(f => f.DestinoId == input.DestinoId);
 
             foreach (var fan in fans)
@@ -72,16 +70,14 @@ namespace TravelBuddy.Comentarios
             }
         }
 
-        public async Task<double> GetPromedioCalificacionAsync(Guid destinoId)
+        [AllowAnonymous]
+        public async Task<List<ComentarioDTO>> GetListPorDestinoAsync(Guid destinoId)
         {
             var comentarios = await _comentarioRepository.GetListAsync(c => c.DestinoId == destinoId);
 
-            if (!comentarios.Any())
-            {
-                return 0;
-            }
-
-            return comentarios.Average(c => c.Puntaje);
+            return ObjectMapper.Map<List<Comentario>, List<ComentarioDTO>>(
+                comentarios.OrderByDescending(c => c.CreationTime).ToList()
+            );
         }
     }
 }

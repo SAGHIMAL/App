@@ -15,5 +15,7 @@ namespace TravelBuddy.Experiencias
         public DateTime FechaExperiencia { get; set; }
 
         public TipoValoracion Valoracion { get; set; }
+
+        public Guid UserId { get; set; }
     }
 }

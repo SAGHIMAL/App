@@ -1,0 +1,46 @@
+<div class="container mt-5" style="max-width: 860px;">
+  <h2 class="h3 mb-1">Destinos populares</h2>
+  <p class="text-muted mb-4">Las ciudades mejor valoradas por los viajeros de TravelBuddy.</p>
+
+  <div *ngIf="cargando" class="text-center p-5">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <p *ngIf="!cargando && !error && populares.length === 0" class="text-muted fst-italic">
+    Todavía no hay destinos calificados. ¡Sé el primero en calificar una ciudad!
+  </p>
+
+  <div *ngFor="let ciudad of populares; let i = index" class="card shadow-sm border-0 mb-3">
+    <div class="card-body d-flex align-items-center gap-3 p-3">
+      <span class="badge bg-primary fs-6 ranking">{{ i + 1 }}</span>
+
+      <div class="flex-grow-1">
+        <h5 class="mb-0">{{ ciudad.nombre }}</h5>
+        <small class="text-muted">
+          {{ ciudad.pais }}<ng-container *ngIf="ciudad.region"> · {{ ciudad.region }}</ng-container>
+        </small>
+      </div>
+
+      <div class="text-end">
+        <span class="estrellas">
+          <i
+            *ngFor="let e of estrellas"
+            class="fa fa-star"
+            [class.text-warning]="e <= redondear(ciudad.promedio)"
+            [class.text-muted]="e > redondear(ciudad.promedio)"
+          ></i>
+        </span>
+        <div>
+          <strong>{{ ciudad.promedio | number: '1.1-1' }}</strong>
+          <small class="text-muted">({{ ciudad.cantidadCalificaciones }})</small>
+        </div>
+      </div>
+
+      <a [routerLink]="['/ciudades/detalle', ciudad.geoDbId]" class="btn btn-outline-primary btn-sm">
+        Ver detalle
+      </a>
+    </div>
+  </div>
+</div>

@@ -37,7 +37,17 @@ namespace TravelBuddy.Calificaciones
             }
             DestinoId = destinoId;
             UserId = userId;
-            Puntaje = puntaje; 
+            Puntaje = puntaje;
+            Comentario = comentario;
+        }
+
+        public void Actualizar(int puntaje, string? comentario)
+        {
+            if (puntaje < 1 || puntaje > 5)
+            {
+                throw new ArgumentOutOfRangeException(nameof(puntaje), "El puntaje debe estar entre 1 y 5.");
+            }
+            Puntaje = puntaje;
             Comentario = comentario;
         }
     }

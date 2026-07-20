@@ -1,0 +1,122 @@
+<div class="d-flex align-items-center gap-3 mb-4">
+  <h5 class="text-muted mb-0">Calificaciones</h5>
+  <div *ngIf="promedio !== null && totalCalificaciones > 0" class="d-flex align-items-center gap-2">
+    <span class="estrellas-promedio">
+      <i
+        *ngFor="let e of estrellas"
+        class="fa fa-star"
+        [class.text-warning]="e <= promedioRedondeado"
+        [class.text-muted]="e > promedioRedondeado"
+      ></i>
+    </span>
+    <strong>{{ promedio | number: '1.1-1' }}</strong>
+    <small class="text-muted">({{ totalCalificaciones }} calificaciones)</small>
+  </div>
+  <small *ngIf="totalCalificaciones === 0 && !cargando" class="text-muted">
+    Este destino todavía no tiene calificaciones.
+  </small>
+</div>
+
+<div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
+
+<div class="mb-4" *ngIf="estaLogueado; else pedirLogin">
+  <div *ngIf="miCalificacion && !editando" class="alert alert-light border">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h6 class="mb-1 text-muted">Tu calificación</h6>
+        <span class="estrellas-promedio">
+          <i
+            *ngFor="let e of estrellas"
+            class="fa fa-star"
+            [class.text-warning]="e <= miCalificacion.puntaje"
+            [class.text-muted]="e > miCalificacion.puntaje"
+          ></i>
+        </span>
+        <p class="mb-0 mt-1" *ngIf="miCalificacion.comentario">
+          "{{ miCalificacion.comentario }}"
+        </p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-primary" (click)="empezarEdicion()" [disabled]="guardando">
+          Editar
+        </button>
+        <button class="btn btn-sm btn-outline-danger" (click)="eliminarCalificacion()" [disabled]="guardando">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!miCalificacion || editando" class="alert alert-light border">
+    <h6 class="mb-2 text-muted">{{ editando ? 'Editar tu calificación' : 'Calificá este destino' }}</h6>
+
+    <div class="mb-2 selector-estrellas">
+      <i
+        *ngFor="let e of estrellas"
+        class="fa fa-star fs-4 me-1"
+        role="button"
+        [class.text-warning]="e <= (puntajeHover || puntajeSeleccionado)"
+        [class.text-muted]="e > (puntajeHover || puntajeSeleccionado)"
+        (mouseenter)="puntajeHover = e"
+        (mouseleave)="puntajeHover = 0"
+        (click)="seleccionarPuntaje(e)"
+      ></i>
+      <small class="ms-2 text-muted" *ngIf="puntajeSeleccionado > 0">{{ puntajeSeleccionado }}/5</small>
+    </div>
+
+    <textarea
+      class="form-control mb-2"
+      rows="2"
+      maxlength="256"
+      placeholder="Comentario (opcional)"
+      [(ngModel)]="comentarioCalificacion"
+    ></textarea>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary btn-sm" (click)="guardarCalificacion()" [disabled]="guardando || puntajeSeleccionado === 0">
+        {{ guardando ? 'Guardando...' : editando ? 'Guardar cambios' : 'Publicar calificación' }}
+      </button>
+      <button *ngIf="editando" class="btn btn-outline-secondary btn-sm" (click)="cancelarEdicion()" [disabled]="guardando">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<ng-template #pedirLogin>
+  <div class="alert alert-info py-2 mb-4">
+    Iniciá sesión para calificar este destino o dejar un comentario.
+  </div>
+</ng-template>
+
+<h5 class="text-muted mb-3">Comentarios</h5>
+
+<div *ngIf="estaLogueado" class="d-flex gap-2 mb-3">
+  <input
+    type="text"
+    class="form-control"
+    maxlength="500"
+    placeholder="Escribí un comentario..."
+    [(ngModel)]="nuevoComentario"
+    (keyup.enter)="publicarComentario()"
+  />
+  <button class="btn btn-primary" (click)="publicarComentario()" [disabled]="guardando || !nuevoComentario.trim()">
+    Comentar
+  </button>
+</div>
+
+<p *ngIf="comentarios.length === 0" class="text-muted fst-italic">
+  Todavía no hay comentarios para este destino.
+</p>
+
+<ul class="list-group list-group-flush">
+  <li *ngFor="let comentario of comentarios" class="list-group-item px-0">
+    <p class="mb-1">{{ comentario.texto }}</p>
+    <small class="text-muted">
+      {{ comentario.creationTime | date: 'dd/MM/yyyy HH:mm' }}
+      <a *ngIf="comentario.userId" [routerLink]="['/perfil', comentario.userId]" class="ms-2">
+        Ver perfil del autor
+      </a>
+    </small>
+  </li>
+</ul>

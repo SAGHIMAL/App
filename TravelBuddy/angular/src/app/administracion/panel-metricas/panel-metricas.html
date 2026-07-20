@@ -1,0 +1,82 @@
+<div class="container mt-5" style="max-width: 860px;">
+  <div class="d-flex justify-content-between align-items-center mb-1">
+    <h2 class="h3 mb-0">Panel de administración</h2>
+    <button class="btn btn-outline-primary btn-sm" (click)="cargar()" [disabled]="cargando">
+      <i class="fa fa-sync me-1"></i>Actualizar
+    </button>
+  </div>
+  <p class="text-muted mb-4">Métricas de uso de la API externa (GeoDB Cities).</p>
+
+  <div *ngIf="cargando" class="text-center p-5">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <ng-container *ngIf="!cargando && metricas">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body">
+            <div class="fs-2 fw-bold">{{ metricas.totalLlamadas }}</div>
+            <small class="text-muted">Llamadas totales</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body">
+            <div class="fs-2 fw-bold text-success">{{ metricas.llamadasExitosas }}</div>
+            <small class="text-muted">Exitosas</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body">
+            <div class="fs-2 fw-bold text-danger">{{ metricas.llamadasFallidas }}</div>
+            <small class="text-muted">Fallidas</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body">
+            <div class="fs-2 fw-bold">{{ porcentajeExito | number: '1.0-0' }}%</div>
+            <small class="text-muted">Tasa de éxito</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-light border d-flex align-items-center gap-2 mb-4">
+      <i class="fa fa-clock text-muted"></i>
+      <span>
+        Última llamada:
+        <strong *ngIf="metricas.ultimaLlamada">{{ metricas.ultimaLlamada | date: 'dd/MM/yyyy HH:mm:ss' }}</strong>
+        <span *ngIf="!metricas.ultimaLlamada" class="text-muted">sin llamadas registradas</span>
+      </span>
+    </div>
+
+    <h5 class="text-muted mb-3">Llamadas por endpoint</h5>
+
+    <p *ngIf="metricas.porEndpoint.length === 0" class="text-muted fst-italic">
+      Todavía no hay llamadas registradas.
+    </p>
+
+    <table *ngIf="metricas.porEndpoint.length > 0" class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Endpoint</th>
+          <th class="text-end">Cantidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fila of metricas.porEndpoint">
+          <td><code>{{ fila.endpoint }}</code></td>
+          <td class="text-end fw-bold">{{ fila.cantidad }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </ng-container>
+</div>
